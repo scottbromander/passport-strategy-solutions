@@ -1,25 +1,20 @@
-const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
+const GitHubStrategy = require('passport-github2').Strategy;
 const pool = require('../modules/pool');
 
-let linkedInStrategyCallback = async (
-  accessToken,
-  refreshToken,
-  profile,
-  cb
-) => {
+let githubStrategyCallback = async (accessToken, refreshToken, profile, cb) => {
   try {
     // PASSWORD IN THIS INSTANCE, IS THE ID PROVIDED BY GOOGLE
-    const qs_linkedinId = `SELECT * FROM "login" WHERE password=$1;`;
-    const linkedinIdResult = await pool.query(qs_linkedinId, [profile.id]);
+    const qs_githubId = `SELECT * FROM "login" WHERE password=$1;`;
+    const githubIdResult = await pool.query(qs_githubId, [profile.id]);
 
     console.log(profile);
-    console.log(linkedinIdResult);
+    console.log(githubIdResult);
 
-    if (linkedinIdResult.rows.length > 0) {
+    if (githubIdResult.rows.length > 0) {
       //   // IF THAT LINKEDIN ID IS ALREADY SAVED IN LOGIN TABLE
       const userQuery = `SELECT * FROM "user" WHERE "id"=$1;`;
       const userResult = await pool.query(userQuery, [
-        linkedinIdResult.rows[0]['user_id'],
+        githubIdResult.rows[0]['user_id'],
       ]);
       const user = userResult.rows[0];
       cb(null, user);
@@ -39,16 +34,11 @@ let linkedInStrategyCallback = async (
 
       const userObject = {
         display_name: profile.displayName ? profile.displayName : 'undefined',
-        first_name: profile.name.givenName
-          ? profile.name.givenName
-          : 'undefined',
-        last_name: profile.name.familyName
-          ? profile.name.familyName
-          : 'undefined',
+        first_name: null, // GitHub does not have first name
+        last_name: null, // GitHub does not have last name
         email: profile.emails[0].value ? profile.emails[0].value : 'undefined',
-        // photos[3] in LinkedIns profile is an 800x800, versus photos[0] is 100x100
-        picture: profile.photos[3].value
-          ? profile.photos[3].value
+        picture: profile.photos[0].value
+          ? profile.photos[0].value
           : 'undefined',
       };
 
@@ -74,20 +64,19 @@ let linkedInStrategyCallback = async (
       cb(null, resultOfNewUserSave.rows[0]);
     }
   } catch (err) {
-    cb(`Error with LinkedIn User: ${err}`, null);
+    cb(`Error with GitHub User: ${err}`, null);
   }
 };
 
 module.exports = (passport, callbackURL) => {
   passport.use(
-    new LinkedInStrategy(
+    new GitHubStrategy(
       {
-        clientID: process.env.LINKEDIN_CLIENT_ID,
-        clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+        clientID: process.env.GITHUB_CLIENT_ID,
+        clientSecret: process.env.GITHUB_CLIENT_SECRET,
         callbackURL,
-        scope: ['r_emailaddress', 'r_liteprofile'],
       },
-      linkedInStrategyCallback
+      githubStrategyCallback
     )
   );
 };
