@@ -1,13 +1,10 @@
 const express = require('express');
 require('dotenv').config();
-
 const app = express();
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const sessionMiddleware = require('./modules/session-middleware');
-
-const passport = require('./strategies/user.strategy');
-const pool = require('./modules/pool');
+const passport = require('./strategies/_root.strategy');
 
 app.use(cors());
 
@@ -30,19 +27,15 @@ app.use(passport.session());
 app.get(
   '/auth/google',
   passport.authenticate('google', {
-    scope: [
-      'profile',
-      'email',
-      'https://www.googleapis.com/auth/user.birthday.read',
-    ],
+    scope: ['profile', 'email'],
   })
 );
 
 app.get(
   '/auth/google/callback',
-  passport.authenticate('google'),
+  passport.authenticate('google', { failureRedirect: '/' }),
   (req, res) => {
-    res.redirect('/');
+    res.redirect('/#/admin');
   }
 );
 
