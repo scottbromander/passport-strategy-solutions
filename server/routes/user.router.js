@@ -5,6 +5,7 @@ const {
 const encryptLib = require('../modules/encryption');
 const pool = require('../modules/pool');
 const userStrategy = require('../strategies/user.strategy');
+const e = require('express');
 
 const router = express.Router();
 
@@ -17,16 +18,41 @@ router.get('/', rejectUnauthenticated, (req, res) => {
 // Handles POST request with new user data
 // The only thing different from this and every other post we've seen
 // is that the password gets encrypted before being inserted
-router.post('/register', (req, res, next) => {
-  const username = req.body.username;
-  const password = encryptLib.encryptPassword(req.body.password);
+router.post('/register', async (req, res, next) => {
+  try {
+    const email = req.body.username;
+    const password = encryptLib.encryptPassword(req.body.password);
+    const normalizedEmail = email.toLowerCase();
 
-  const queryText =
-    'INSERT INTO "user" (username, password) VALUES ($1, $2) RETURNING id';
-  pool
-    .query(queryText, [username, password])
-    .then(() => res.sendStatus(201))
-    .catch(() => res.sendStatus(500));
+    const existingEmailArray = await pool.query(
+      `SELECT "email" from "user" WHERE "email"=$1`,
+      [normalizedEmail]
+    );
+
+    if (!existingEmailArray.rows.length) {
+      const queryTextCreateUser = `INSERT INTO "user" ("email") VALUES ($1) RETURNING id`;
+      const newUser = await pool.query(queryTextCreateUser, [normalizedEmail]);
+
+      const newUserId = newUser.rows[0].id;
+
+      const queryTextCreateLogin = `INSERT INTO "login" ("provider", "password", "user_id") VALUES ($1,$2, $3);`;
+      const newLogin = await pool.query(queryTextCreateLogin, [
+        'local',
+        password,
+        newUserId,
+      ]);
+
+      res.send(201);
+    } else {
+      console.log(
+        `Error, email already in database. Use the correct provider to login.`
+      );
+      res.sendStatus(500);
+    }
+  } catch (err) {
+    console.log(`Error saving new local user: ${err}`);
+    res.sendStatus(500);
+  }
 });
 
 // Handles login form authenticate/login POST
