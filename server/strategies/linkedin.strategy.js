@@ -1,18 +1,25 @@
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
 const pool = require('../modules/pool');
 
-// WHAT HAPPENS AFTER GOOGLE HAS CONFIRMED THE USER
-let googleStrategyCallback = async (accessToken, refreshToken, profile, cb) => {
+let linkedInStrategyCallback = async (
+  accessToken,
+  refreshToken,
+  profile,
+  cb
+) => {
   try {
     // PASSWORD IN THIS INSTANCE, IS THE ID PROVIDED BY GOOGLE
-    const qs_googleId = `SELECT * FROM "login" WHERE password=$1;`;
-    const googleIdResult = await pool.query(qs_googleId, [profile.id]);
+    const qs_linkedinId = `SELECT * FROM "login" WHERE password=$1;`;
+    const linkedinIdResult = await pool.query(qs_linkedinId, [profile.id]);
 
-    if (googleIdResult.rows.length > 0) {
-      // IF THAT GOOGLE ID IS ALREADY SAVED IN LOGIN TABLE
+    console.log(profile);
+    console.log(linkedinIdResult);
+
+    if (linkedinIdResult.rows.length > 0) {
+      //   // IF THAT LINKEDIN ID IS ALREADY SAVED IN LOGIN TABLE
       const userQuery = `SELECT * FROM "user" WHERE "id"=$1;`;
       const userResult = await pool.query(userQuery, [
-        googleIdResult.rows[0]['user_id'],
+        linkedinIdResult.rows[0]['user_id'],
       ]);
       const user = userResult.rows[0];
       cb(null, user);
@@ -23,7 +30,6 @@ let googleStrategyCallback = async (accessToken, refreshToken, profile, cb) => {
       const resultOfEmailCheck = await pool.query(qs_emailCheck, [
         profile.emails[0].value,
       ]);
-
       // IF THE USER USED ANOTHER SERVICE TO CREATE AN ACCOUNT
       // TELL THEM THEY SHOULD LOG IN WITH THAT SERVICE
       if (resultOfEmailCheck.rows.length > 0)
@@ -40,8 +46,9 @@ let googleStrategyCallback = async (accessToken, refreshToken, profile, cb) => {
           ? profile.name.familyName
           : 'undefined',
         email: profile.emails[0].value ? profile.emails[0].value : 'undefined',
-        picture: profile.photos[0].value
-          ? profile.photos[0].value
+        // photos[3] in LinkedIns profile is an 800x800, versus photos[0] is 100x100
+        picture: profile.photos[3].value
+          ? profile.photos[3].value
           : 'undefined',
       };
 
@@ -54,7 +61,6 @@ let googleStrategyCallback = async (accessToken, refreshToken, profile, cb) => {
       ]);
 
       const qs_createNewLogin = `INSERT INTO "login" ("provider", "password", "user_id") VALUES ($1,$2,$3);`;
-
       const resultOfLoginSave = await pool.query(qs_createNewLogin, [
         profile.provider,
         profile.id,
@@ -68,19 +74,20 @@ let googleStrategyCallback = async (accessToken, refreshToken, profile, cb) => {
       cb(null, resultOfNewUserSave.rows[0]);
     }
   } catch (err) {
-    cb(`Error with Google User: ${err}`, null);
+    cb(`Error with LinkedIn User: ${err}`, null);
   }
 };
 
 module.exports = (passport, callbackURL) => {
   passport.use(
-    new GoogleStrategy(
+    new LinkedInStrategy(
       {
-        clientID: process.env.GOOGLE_CLIENT_ID,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL,
+        clientID: process.env.LINKEDIN_CLIENT_ID,
+        clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+        callbackURL: callbackURL,
+        scope: ['r_emailaddress', 'r_liteprofile'],
       },
-      googleStrategyCallback
+      linkedInStrategyCallback
     )
   );
 };

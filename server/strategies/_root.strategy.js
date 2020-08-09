@@ -2,10 +2,12 @@ const passport = require('passport');
 const pool = require('../modules/pool');
 const useLocalStrategy = require('./local.strategy');
 const useGoogleStrategy = require('./google.strategy');
+const useLinkedInStrategy = require('./linkedin.strategy');
 
 // STRATEGIES
 useLocalStrategy(passport);
 useGoogleStrategy(passport, '/auth/google/callback');
+useLinkedInStrategy(passport, '/auth/linkedin/callback');
 
 passport.serializeUser((user, done) => {
   console.log('serializing user: ', user);
@@ -13,8 +15,11 @@ passport.serializeUser((user, done) => {
 });
 
 passport.deserializeUser(async (id, done) => {
+  console.log('In deserialize');
   try {
-    const result = pool.query('SELECT * FROM "user" WHERE id = $1;', [id]);
+    const result = await pool.query('SELECT * FROM "user" WHERE id = $1;', [
+      id,
+    ]);
     const user = result && result.rows && result.rows[0];
     if (user) {
       delete user.password;

@@ -1,57 +1,11 @@
 // IN THE PROCESS OF BEING DEPRECATED - See _root.strategy
 
 const passport = require('passport');
-const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
 const GitHubStrategy = require('passport-github2').Strategy;
 const SpotifyStrategy = require('passport-spotify').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
 
 const pool = require('../modules/pool');
-
-passport.use(
-  new LinkedInStrategy(
-    {
-      clientID: process.env.LINKEDIN_CLIENT_ID,
-      clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
-      callbackURL: '/auth/linkedin/callback',
-      scope: ['r_emailaddress', 'r_liteprofile'],
-    },
-    function (accessToken, refreshToken, profile, done) {
-      console.log(profile);
-      const candidateEmail = profile.emails[0].value;
-
-      pool
-        .query(`SELECT * FROM "user" WHERE username=$1;`, [candidateEmail])
-        .then((response) => {
-          console.log('USER: ', response.rows);
-          if (response.rows.length === 0) {
-            // No Users - Create a new one
-            pool
-              .query(
-                `INSERT INTO "user" ("username", "provider") VALUES ($1,$2) RETURNING "id", "username";`,
-                [candidateEmail, profile.provider]
-              )
-              .then((response) => {
-                const user = { ...response.rows[0] };
-                done(null, user);
-              })
-              .catch((err) => {
-                console.log(`Error saving new user: ${err}`);
-                done(null, null);
-              });
-          } else {
-            // Found a user with that email!
-            const user = response.rows[0];
-            done(null, user);
-          }
-        })
-        .catch((err) => {
-          console.log(`Error finding Google User: ${err}`);
-          done(null, null);
-        });
-    }
-  )
-);
 
 passport.use(
   new GitHubStrategy(
