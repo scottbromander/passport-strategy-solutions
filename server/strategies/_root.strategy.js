@@ -4,12 +4,14 @@ const useLocalStrategy = require('./local.strategy');
 const useGoogleStrategy = require('./google.strategy');
 const useLinkedInStrategy = require('./linkedin.strategy');
 const useGithubStrategy = require('./github.strategy');
+const useFacebookStrategy = require('./facebook.strategy');
 
 // STRATEGIES
 useLocalStrategy(passport);
 useGoogleStrategy(passport, '/auth/google/callback');
 useLinkedInStrategy(passport, '/auth/linkedin/callback');
 useGithubStrategy(passport, '/auth/github/callback');
+useFacebookStrategy(passport, '/auth/facebook/callback');
 
 passport.serializeUser((user, done) => {
   console.log('serializing user: ', user);

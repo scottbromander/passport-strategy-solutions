@@ -8,12 +8,9 @@ let linkedInStrategyCallback = async (
   cb
 ) => {
   try {
-    // PASSWORD IN THIS INSTANCE, IS THE ID PROVIDED BY GOOGLE
+    // PASSWORD IN THIS INSTANCE, IS THE ID PROVIDED BY LINKEDIN
     const qs_linkedinId = `SELECT * FROM "login" WHERE password=$1;`;
     const linkedinIdResult = await pool.query(qs_linkedinId, [profile.id]);
-
-    console.log(profile);
-    console.log(linkedinIdResult);
 
     if (linkedinIdResult.rows.length > 0) {
       //   // IF THAT LINKEDIN ID IS ALREADY SAVED IN LOGIN TABLE
@@ -38,18 +35,12 @@ let linkedInStrategyCallback = async (
       const qs_createNewUser = `INSERT INTO "user" ("display_name", "first_name", "last_name", "email", "picture") VALUES ($1,$2,$3,$4,$5) RETURNING *;`;
 
       const userObject = {
-        display_name: profile.displayName ? profile.displayName : 'undefined',
-        first_name: profile.name.givenName
-          ? profile.name.givenName
-          : 'undefined',
-        last_name: profile.name.familyName
-          ? profile.name.familyName
-          : 'undefined',
-        email: profile.emails[0].value ? profile.emails[0].value : 'undefined',
+        display_name: profile.displayName ? profile.displayName : null,
+        first_name: profile.name.givenName ? profile.name.givenName : null,
+        last_name: profile.name.familyName ? profile.name.familyName : null,
+        email: profile.emails[0].value ? profile.emails[0].value : null,
         // photos[3] in LinkedIns profile is an 800x800, versus photos[0] is 100x100
-        picture: profile.photos[3].value
-          ? profile.photos[3].value
-          : 'undefined',
+        picture: profile.photos[3].value ? profile.photos[3].value : null,
       };
 
       const resultOfNewUserSave = await pool.query(qs_createNewUser, [
@@ -66,10 +57,6 @@ let linkedInStrategyCallback = async (
         profile.id,
         resultOfNewUserSave.rows[0].id,
       ]);
-
-      console.log('\nThis should be the user:');
-      console.log(resultOfNewUserSave.rows[0]);
-      console.log('\n');
 
       cb(null, resultOfNewUserSave.rows[0]);
     }

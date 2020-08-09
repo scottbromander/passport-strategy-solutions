@@ -3,15 +3,12 @@ const pool = require('../modules/pool');
 
 let githubStrategyCallback = async (accessToken, refreshToken, profile, cb) => {
   try {
-    // PASSWORD IN THIS INSTANCE, IS THE ID PROVIDED BY GOOGLE
+    // PASSWORD IN THIS INSTANCE, IS THE ID PROVIDED BY GITHUB
     const qs_githubId = `SELECT * FROM "login" WHERE password=$1;`;
     const githubIdResult = await pool.query(qs_githubId, [profile.id]);
 
-    console.log(profile);
-    console.log(githubIdResult);
-
     if (githubIdResult.rows.length > 0) {
-      //   // IF THAT LINKEDIN ID IS ALREADY SAVED IN LOGIN TABLE
+      //   // IF THAT GITHUB ID IS ALREADY SAVED IN LOGIN TABLE
       const userQuery = `SELECT * FROM "user" WHERE "id"=$1;`;
       const userResult = await pool.query(userQuery, [
         githubIdResult.rows[0]['user_id'],
@@ -33,13 +30,11 @@ let githubStrategyCallback = async (accessToken, refreshToken, profile, cb) => {
       const qs_createNewUser = `INSERT INTO "user" ("display_name", "first_name", "last_name", "email", "picture") VALUES ($1,$2,$3,$4,$5) RETURNING *;`;
 
       const userObject = {
-        display_name: profile.displayName ? profile.displayName : 'undefined',
-        first_name: null, // GitHub does not have first name
-        last_name: null, // GitHub does not have last name
-        email: profile.emails[0].value ? profile.emails[0].value : 'undefined',
-        picture: profile.photos[0].value
-          ? profile.photos[0].value
-          : 'undefined',
+        display_name: profile.displayName ? profile.displayName : null,
+        first_name: null, // GITHUB DOES NOT HAVE FIRST NAME
+        last_name: null, // GITHUB DOES NOT HAVE LAST NAME
+        email: profile.emails[0].value ? profile.emails[0].value : null,
+        picture: profile.photos[0].value ? profile.photos[0].value : null,
       };
 
       const resultOfNewUserSave = await pool.query(qs_createNewUser, [
@@ -56,10 +51,6 @@ let githubStrategyCallback = async (accessToken, refreshToken, profile, cb) => {
         profile.id,
         resultOfNewUserSave.rows[0].id,
       ]);
-
-      console.log('\nThis should be the user:');
-      console.log(resultOfNewUserSave.rows[0]);
-      console.log('\n');
 
       cb(null, resultOfNewUserSave.rows[0]);
     }

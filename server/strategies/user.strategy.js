@@ -3,9 +3,6 @@
 const passport = require('passport');
 
 const SpotifyStrategy = require('passport-spotify').Strategy;
-const FacebookStrategy = require('passport-facebook').Strategy;
-
-const pool = require('../modules/pool');
 
 passport.use(
   new SpotifyStrategy(
@@ -46,33 +43,6 @@ passport.use(
           console.log(`Error finding Google User: ${err}`);
           return done(null, null);
         });
-    }
-  )
-);
-
-passport.use(
-  new FacebookStrategy(
-    {
-      clientID: process.env.FACEBOOK_CLIENT_ID,
-      clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
-      callbackURL: '/auth/facebook/callback',
-      profileFields: [
-        'id',
-        'displayName',
-        'first_name',
-        'last_name',
-        'picture',
-        'email',
-        'link',
-        'location',
-      ],
-    },
-    function (accessToken, refreshToken, profile, done) {
-      console.log(profile);
-      return done(null, profile);
-      // User.findOrCreate({ facebookId: profile.id }, function (err, user) {
-      //   return cb(err, user);
-      // });
     }
   )
 );

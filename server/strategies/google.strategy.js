@@ -32,17 +32,11 @@ let googleStrategyCallback = async (accessToken, refreshToken, profile, cb) => {
       const qs_createNewUser = `INSERT INTO "user" ("display_name", "first_name", "last_name", "email", "picture") VALUES ($1,$2,$3,$4,$5) RETURNING *;`;
 
       const userObject = {
-        display_name: profile.displayName ? profile.displayName : 'undefined',
-        first_name: profile.name.givenName
-          ? profile.name.givenName
-          : 'undefined',
-        last_name: profile.name.familyName
-          ? profile.name.familyName
-          : 'undefined',
-        email: profile.emails[0].value ? profile.emails[0].value : 'undefined',
-        picture: profile.photos[0].value
-          ? profile.photos[0].value
-          : 'undefined',
+        display_name: profile.displayName ? profile.displayName : null,
+        first_name: profile.name.givenName ? profile.name.givenName : null,
+        last_name: profile.name.familyName ? profile.name.familyName : null,
+        email: profile.emails[0].value ? profile.emails[0].value : null,
+        picture: profile.photos[0].value ? profile.photos[0].value : null,
       };
 
       const resultOfNewUserSave = await pool.query(qs_createNewUser, [
@@ -60,10 +54,6 @@ let googleStrategyCallback = async (accessToken, refreshToken, profile, cb) => {
         profile.id,
         resultOfNewUserSave.rows[0].id,
       ]);
-
-      console.log('\nThis should be the user:');
-      console.log(resultOfNewUserSave.rows[0]);
-      console.log('\n');
 
       cb(null, resultOfNewUserSave.rows[0]);
     }
