@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const sessionMiddleware = require('./modules/session-middleware');
 const passport = require('./strategies/_root.strategy');
+const crypto = require('crypto');
 
 app.use(cors());
 
@@ -79,7 +80,7 @@ app.get(
 
 app.get(
   '/auth/spotify/callback',
-  passport.authenticate('spotify', { failureRedirect: '/login' }),
+  passport.authenticate('spotify', { failureRedirect: '/#/login' }),
   function (req, res) {
     // Successful authentication, redirect home.
     res.redirect('/');
@@ -94,8 +95,25 @@ app.get(
   '/auth/facebook/callback',
   passport.authenticate('facebook', {
     successRedirect: '/#/admin',
-    failureRedirect: '/',
+    failureRedirect: '/#/login',
   }),
+  function (req, res) {
+    // Successful authentication, redirect home.
+    res.redirect('/#/home');
+  }
+);
+
+// ---- REDDIT OAUTH ---- \\
+app.get('/auth/reddit', (req, res, next) => {
+  req.session.state = crypto.randomBytes(32).toString('hex');
+  passport.authenticate('reddit', {
+    state: req.session.state,
+  })(req, res, next);
+});
+
+app.get(
+  '/auth/reddit/callback',
+  passport.authenticate('reddit', { failureRedirect: '/#/login' }),
   function (req, res) {
     // Successful authentication, redirect home.
     res.redirect('/#/home');
