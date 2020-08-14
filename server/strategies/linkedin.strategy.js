@@ -1,7 +1,7 @@
 const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
 const pool = require('../modules/pool');
 
-let linkedInStrategyCallback = async (
+const linkedInStrategyCallback = async (
   accessToken,
   refreshToken,
   profile,

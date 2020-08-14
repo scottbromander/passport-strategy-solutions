@@ -64,7 +64,7 @@ app.get(
   passport.authenticate('github', { failureRedirect: '/login' }),
   function (req, res) {
     // Successful authentication, redirect home.
-    res.redirect('/');
+    res.redirect('/#/admin');
   }
 );
 
@@ -83,7 +83,7 @@ app.get(
   passport.authenticate('spotify', { failureRedirect: '/#/login' }),
   function (req, res) {
     // Successful authentication, redirect home.
-    res.redirect('/');
+    res.redirect('/#/admin');
   }
 );
 
@@ -99,7 +99,7 @@ app.get(
   }),
   function (req, res) {
     // Successful authentication, redirect home.
-    res.redirect('/#/home');
+    res.redirect('/#/admin');
   }
 );
 
@@ -116,7 +116,29 @@ app.get(
   passport.authenticate('reddit', { failureRedirect: '/#/login' }),
   function (req, res) {
     // Successful authentication, redirect home.
-    res.redirect('/#/home');
+    res.redirect('/#/admin');
+  }
+);
+
+// ---- STEAM OAUTH ---- \\
+app.get(
+  '/auth/steam',
+  passport.authenticate('steam', { failureRedirect: '/' }),
+  function (req, res) {
+    res.redirect('/');
+  }
+);
+
+app.get(
+  '/auth/steam/return',
+  (req, res, next) => {
+    req.url = req.originalUrl;
+    next();
+  },
+  passport.authenticate('steam', { failureRedirect: '/login' }),
+  function (req, res) {
+    // Successful authentication, redirect home.
+    res.redirect('/#/admin');
   }
 );
 

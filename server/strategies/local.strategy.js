@@ -1,7 +1,7 @@
 const LocalStrategy = require('passport-local').Strategy;
 const encryptLib = require('../modules/encryption');
 
-let localStrategyCallback = async (email, password, done) => {
+const localStrategyCallback = async (email, password, done) => {
   try {
     const result = await pool.query(
       `SELECT * FROM "user" 

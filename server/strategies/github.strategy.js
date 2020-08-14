@@ -1,7 +1,12 @@
 const GitHubStrategy = require('passport-github2').Strategy;
 const pool = require('../modules/pool');
 
-let githubStrategyCallback = async (accessToken, refreshToken, profile, cb) => {
+const githubStrategyCallback = async (
+  accessToken,
+  refreshToken,
+  profile,
+  cb
+) => {
   try {
     // PASSWORD IN THIS INSTANCE, IS THE ID PROVIDED BY GITHUB
     const qs_githubId = `SELECT * FROM "login" WHERE password=$1;`;

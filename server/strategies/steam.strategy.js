@@ -1,23 +1,18 @@
-const RedditStrategy = require('passport-reddit').Strategy;
+const SteamStrategy = require('passport-steam').Strategy;
 const pool = require('../modules/pool');
 
-const redditStrategyCallback = async (
-  accessToken,
-  refreshToken,
-  profile,
-  cb
-) => {
+const steamCallbackStrategy = async (identifier, profile, cb) => {
   console.log(profile);
   try {
-    // PASSWORD IN THIS INSTANCE, IS THE ID PROVIDED BY REDDIT
-    const qs_redditId = `SELECT * FROM "login" WHERE password=$1;`;
-    const redditIdResult = await pool.query(qs_redditId, [profile.id]);
+    // PASSWORD IN THIS INSTANCE, IS THE ID PROVIDED BY STEAM
+    const qs_steamId = `SELECT * FROM "login" WHERE password=$1;`;
+    const steamIdResult = await pool.query(qs_steamId, [profile.id]);
 
-    if (redditIdResult.rows.length > 0) {
-      //   // IF THAT REDDIT ID IS ALREADY SAVED IN LOGIN TABLE
+    if (steamIdResult.rows.length > 0) {
+      //   // IF THAT STEAM ID IS ALREADY SAVED IN LOGIN TABLE
       const userQuery = `SELECT * FROM "user" WHERE "id"=$1;`;
       const userResult = await pool.query(userQuery, [
-        redditIdResult.rows[0]['user_id'],
+        steamIdResult.rows[0]['user_id'],
       ]);
       const user = userResult.rows[0];
       cb(null, user);
@@ -46,11 +41,11 @@ const redditStrategyCallback = async (
       const qs_createNewUser = `INSERT INTO "user" ("display_name", "first_name", "last_name", "email", "picture") VALUES ($1,$2,$3,$4,$5) RETURNING *;`;
 
       const userObject = {
-        display_name: profile.name ? profile.name : null,
-        first_name: null, // REDDIT DOES NOT PROVIDE FIRST NAME
-        last_name: null, // REDDIT DOES NOT PROVIDE LASTNAME
-        email: null, // REDDIT DOES NOT PROVIDE EMAIL
-        picture: profile._json.icon_img ? profile._json.icon_img : null, // REDDIT DOES NOT PROVIDE PICTURE
+        display_name: profile.displayName ? profile.displayName : null,
+        first_name: null,
+        last_name: null,
+        email: null,
+        picture: profile.photos[2].value ? profile.photos[2].value : null,
       };
 
       const resultOfNewUserSave = await pool.query(qs_createNewUser, [
@@ -71,19 +66,19 @@ const redditStrategyCallback = async (
       cb(null, resultOfNewUserSave.rows[0]);
     }
   } catch (err) {
-    cb(`Error with Reddit User: ${err}`, null);
+    cb(`Error with Facebook User: ${err}`, null);
   }
 };
 
 module.exports = (passport, callbackURL) => {
   passport.use(
-    new RedditStrategy(
+    new SteamStrategy(
       {
-        clientID: process.env.REDDIT_CONSUMER_ID,
-        clientSecret: process.env.REDDIT_CONSUMER_SECRET,
-        callbackURL,
+        returnURL: `http://localhost:3000/${callbackURL}`,
+        realm: 'http://localhost:3000/',
+        apiKey: process.env.STEAM_API_KEY,
       },
-      redditStrategyCallback
+      steamCallbackStrategy
     )
   );
 };

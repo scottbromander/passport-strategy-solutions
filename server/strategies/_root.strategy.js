@@ -7,6 +7,7 @@ const useGithubStrategy = require('./github.strategy');
 const useFacebookStrategy = require('./facebook.strategy');
 const useSpotifyStrategy = require('./spotify.strategy');
 const useRedditStrategy = require('./reddit.strategy');
+const useSteamStrategy = require('./steam.strategy');
 
 // STRATEGIES
 useLocalStrategy(passport);
@@ -16,6 +17,7 @@ useGithubStrategy(passport, '/auth/github/callback');
 useFacebookStrategy(passport, '/auth/facebook/callback');
 useSpotifyStrategy(passport, '/auth/spotify/callback');
 useRedditStrategy(passport, '/auth/reddit/callback');
+useSteamStrategy(passport, 'auth/steam/return');
 
 passport.serializeUser((user, done) => {
   console.log('serializing user: ', user);

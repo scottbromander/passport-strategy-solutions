@@ -7,10 +7,11 @@ import mapStoreToProps from '../../redux/mapStoreToProps';
 // const UserPage = ({ user }) => (
 // and then instead of `props.user.username` you could use `user.username`
 const UserPage = (props) => (
-  <div>
-    <h1 id="welcome">
-      Welcome, { props.store.user.username }!
-    </h1>
+  <div style={{ margin: '20px' }}>
+    {props.store.user.picture && (
+      <img src={props.store.user.picture} style={{ width: '100px' }} />
+    )}
+    <h1 id="welcome">Welcome, {props.store.user.display_name}!</h1>
     <p>Your ID is: {props.store.user.id}</p>
     <LogOutButton className="log-in" />
   </div>

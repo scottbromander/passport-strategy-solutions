@@ -103,6 +103,11 @@ class RegisterPage extends Component {
               Reddit
             </button>
           </div>
+          <div onClick={() => (window.location = 'auth/steam')}>
+            <button type="button" className="link-button">
+              Steam
+            </button>
+          </div>
           <button
             type="button"
             className="link-button"

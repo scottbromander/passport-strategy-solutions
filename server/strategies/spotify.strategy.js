@@ -1,7 +1,7 @@
 const SpotifyStrategy = require('passport-spotify').Strategy;
 const pool = require('../modules/pool');
 
-let spotifyStrategyCallback = async (
+const spotifyStrategyCallback = async (
   accessToken,
   refreshToken,
   expires_in,

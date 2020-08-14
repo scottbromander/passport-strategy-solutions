@@ -1,3 +1,5 @@
+// TODO: WAITING FOR TWITTER TO APPROVE APP
+
 const TwitterStrategy = require('passport-twitter').Strategy;
 const pool = require('../modules/pool');
 

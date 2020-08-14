@@ -2,7 +2,12 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const pool = require('../modules/pool');
 
 // WHAT HAPPENS AFTER GOOGLE HAS CONFIRMED THE USER
-let googleStrategyCallback = async (accessToken, refreshToken, profile, cb) => {
+const googleStrategyCallback = async (
+  accessToken,
+  refreshToken,
+  profile,
+  cb
+) => {
   try {
     // PASSWORD IN THIS INSTANCE, IS THE ID PROVIDED BY GOOGLE
     const qs_googleId = `SELECT * FROM "login" WHERE password=$1;`;
@@ -23,7 +28,6 @@ let googleStrategyCallback = async (accessToken, refreshToken, profile, cb) => {
       const resultOfEmailCheck = await pool.query(qs_emailCheck, [
         profile.emails[0].value,
       ]);
-
       // IF THE USER USED ANOTHER SERVICE TO CREATE AN ACCOUNT
       // TELL THEM THEY SHOULD LOG IN WITH THAT SERVICE
       if (resultOfEmailCheck.rows.length > 0)
