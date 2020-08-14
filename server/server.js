@@ -1,13 +1,11 @@
 const express = require('express');
 require('dotenv').config();
-
 const app = express();
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const sessionMiddleware = require('./modules/session-middleware');
-
-const passport = require('./strategies/user.strategy');
-const pool = require('./modules/pool');
+const passport = require('./strategies/_root.strategy');
+const crypto = require('crypto');
 
 app.use(cors());
 
@@ -30,19 +28,15 @@ app.use(passport.session());
 app.get(
   '/auth/google',
   passport.authenticate('google', {
-    scope: [
-      'profile',
-      'email',
-      'https://www.googleapis.com/auth/user.birthday.read',
-    ],
+    scope: ['profile', 'email'],
   })
 );
 
 app.get(
   '/auth/google/callback',
-  passport.authenticate('google'),
+  passport.authenticate('google', { failureRedirect: '/' }),
   (req, res) => {
-    res.redirect('/');
+    res.redirect('/#/admin');
   }
 );
 
@@ -70,7 +64,7 @@ app.get(
   passport.authenticate('github', { failureRedirect: '/login' }),
   function (req, res) {
     // Successful authentication, redirect home.
-    res.redirect('/');
+    res.redirect('/#/admin');
   }
 );
 
@@ -86,10 +80,10 @@ app.get(
 
 app.get(
   '/auth/spotify/callback',
-  passport.authenticate('spotify', { failureRedirect: '/login' }),
+  passport.authenticate('spotify', { failureRedirect: '/#/login' }),
   function (req, res) {
     // Successful authentication, redirect home.
-    res.redirect('/');
+    res.redirect('/#/admin');
   }
 );
 
@@ -100,12 +94,51 @@ app.get('/auth/facebook', passport.authenticate('facebook'));
 app.get(
   '/auth/facebook/callback',
   passport.authenticate('facebook', {
-    successRedirect: '/#/user',
-    failureRedirect: '/',
+    successRedirect: '/#/admin',
+    failureRedirect: '/#/login',
   }),
   function (req, res) {
     // Successful authentication, redirect home.
-    res.redirect('/#/home');
+    res.redirect('/#/admin');
+  }
+);
+
+// ---- REDDIT OAUTH ---- \\
+app.get('/auth/reddit', (req, res, next) => {
+  req.session.state = crypto.randomBytes(32).toString('hex');
+  passport.authenticate('reddit', {
+    state: req.session.state,
+  })(req, res, next);
+});
+
+app.get(
+  '/auth/reddit/callback',
+  passport.authenticate('reddit', { failureRedirect: '/#/login' }),
+  function (req, res) {
+    // Successful authentication, redirect home.
+    res.redirect('/#/admin');
+  }
+);
+
+// ---- STEAM OAUTH ---- \\
+app.get(
+  '/auth/steam',
+  passport.authenticate('steam', { failureRedirect: '/' }),
+  function (req, res) {
+    res.redirect('/');
+  }
+);
+
+app.get(
+  '/auth/steam/return',
+  (req, res, next) => {
+    req.url = req.originalUrl;
+    next();
+  },
+  passport.authenticate('steam', { failureRedirect: '/login' }),
+  function (req, res) {
+    // Successful authentication, redirect home.
+    res.redirect('/#/admin');
   }
 );
 
